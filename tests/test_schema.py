@@ -1977,3 +1977,45 @@ def test_new_type():
         'properties': {'a': {'title': 'A', 'type': 'string'}},
         'required': ['a'],
     }
+
+
+def test_schema_collection():
+    new_type = NewType('NewStr', str)
+
+    class Base(BaseModel):
+        __collection__ = True
+
+    class A(Base):
+        a: int
+
+    class B(Base):
+        b: int
+
+    class Model(BaseModel):
+        collection_field: Base
+
+    assert Model.schema() == {
+        'title': 'Model',
+        'type': 'object',
+        'properties': {
+            'collection_field': {
+                'title': 'Collection Field',
+                'anyOf': [{'$ref': '#/definitions/A'}, {'$ref': '#/definitions/B'}],
+            }
+        },
+        'required': ['collection_field'],
+        'definitions': {
+            'A': {
+                'title': 'A',
+                'type': 'object',
+                'properties': {'a': {'title': 'A', 'type': 'integer'}},
+                'required': ['a'],
+            },
+            'B': {
+                'title': 'B',
+                'type': 'object',
+                'properties': {'b': {'title': 'B', 'type': 'integer'}},
+                'required': ['b'],
+            },
+        },
+    }

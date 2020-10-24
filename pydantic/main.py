@@ -249,6 +249,9 @@ class ModelMetaclass(ABCMeta):
             untouched_types = UNTOUCHED_TYPES + config.keep_untouched
             # annotation only fields need to come first in fields
             for ann_name, ann_type in annotations.items():
+                if getattr(ann_type, "__collection__", None):
+                    collection_factory = ann_type.__collection__ if callable(ann_type.__collection__) else ann_type.__subclasses__
+                    ann_type = Union[tuple(collection_factory())]
                 if is_classvar(ann_type):
                     class_vars.add(ann_name)
                 elif is_valid_field(ann_name):
